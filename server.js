@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
     if (req.url === "/_diag") {
     const net = require("net"), dns = require("dns");
-    const tests = [[TARGET.hostname, Number(TARGET.port)], ["1.1.1.1", 443], ["1.1.1.1", 53], ["8.8.8.8", 853] ["1.1.1.1", 80], ];
+    const tests = [[TARGET.hostname, Number(TARGET.port)], ["1.1.1.1", 443], ["1.1.1.1", 53], ["8.8.8.8", 853], ["1.1.1.1", 80]];
     const out = [];
     dns.lookup(TARGET.hostname, (e, addr) => {
       const kind = e ? "dns-fail" : /^(127\.|10\.|192\.168\.|0\.)/.test(addr) ? "private/loopback" : "public";
