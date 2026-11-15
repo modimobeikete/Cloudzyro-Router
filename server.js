@@ -8,6 +8,24 @@ const TARGET = new URL(process.env.TARGET);
 const PORT = process.env.PORT || 3000;
 
 http.createServer((req, res) => {
+    if (req.url === "/_diag") {
+    const net = require("net"), dns = require("dns");
+    const tests = [[TARGET.hostname, Number(TARGET.port)], [TARGET.hostname, 443], [TARGET.hostname, 80]];
+    const out = [];
+    dns.lookup(TARGET.hostname, (e, addr) => {
+      const kind = e ? "dns-fail" : /^(127\.|10\.|192\.168\.|0\.)/.test(addr) ? "private/loopback" : "public";
+      out.push("dns: " + kind);
+      let left = tests.length;
+      tests.forEach(([h, p]) => {
+        const s = net.connect({ host: h, port: p, timeout: 4000 });
+        const done = (r) => { out.push("port " + p + ": " + r); s.destroy(); if (--left === 0) { res.writeHead(200, { "content-type": "text/plain" }); res.end(out.join("\n")); } };
+        s.on("connect", () => done("connected"));
+        s.on("timeout", () => done("timeout"));
+        s.on("error", (er) => done(er.code));
+      });
+    });
+    return;
+  }
   // 健康检查：根路径直接返回 200，不转发
   if ((req.method === "GET" || req.method === "HEAD") && (req.url === "/" || req.url === "/healthz")) {
     res.writeHead(200, { "content-type": "text/plain" });
