@@ -5,8 +5,16 @@ if (!process.env.TARGET) {
   process.exit(1);
 }
 const TARGET = new URL(process.env.TARGET);
+const PORT = process.env.PORT || 3000;
 
 http.createServer((req, res) => {
+  // 健康检查：根路径直接返回 200，不转发
+  if ((req.method === "GET" || req.method === "HEAD") && (req.url === "/" || req.url === "/healthz")) {
+    res.writeHead(200, { "content-type": "text/plain" });
+    res.end("ok");
+    return;
+  }
+
   const headers = { ...req.headers };
   delete headers.host;
 
@@ -21,4 +29,4 @@ http.createServer((req, res) => {
   req.on("aborted", () => up.destroy());
   res.on("close", () => up.destroy());
   req.pipe(up);
-}).listen(process.env.PORT || 3000, "0.0.0.0");
+}).listen(PORT, "0.0.0.0", () => console.log("listening on " + PORT));
