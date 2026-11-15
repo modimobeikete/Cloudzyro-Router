@@ -25,7 +25,11 @@ http.createServer((req, res) => {
       r.pipe(res);
     }
   );
-  up.on("error", () => { if (!res.headersSent) res.writeHead(502); res.end(); });
+  up.on("error", (err) => {
+  console.error("upstream error:", err.code, err.message);
+  if (!res.headersSent) res.writeHead(500, { "content-type": "text/plain" });
+  res.end("upstream error: " + err.code);
+});
   req.on("aborted", () => up.destroy());
   res.on("close", () => up.destroy());
   req.pipe(up);
